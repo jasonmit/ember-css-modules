@@ -25,8 +25,8 @@ module.exports = {
 
     var options = registry.app.options && registry.app.options.cssModules || {};
 
-    if (!options.includeFiles) {
-      options.includeFiles = ['**/*.css'];
+    if (!options.inputFiles) {
+      options.inputFiles = ['**/*.css'];
     }
 
     this.modulesPreprocessor = new ModulesPreprocessor({
