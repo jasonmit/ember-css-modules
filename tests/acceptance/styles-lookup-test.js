@@ -1,4 +1,5 @@
 import { test } from 'qunit';
+import $ from 'jquery';
 import moduleForAcceptance from '../../tests/helpers/module-for-acceptance';
 
 moduleForAcceptance('Acceptance | component styles lookup');
@@ -13,23 +14,31 @@ var componentRoutes = [
   'addon-component',
   'pod-route/nested-pod-component',
   'pod-route/nested-pod-template-only-component',
-  'component-with-container-class'
-].map(name => [name, `/render-component/${name}`]);
+  'component-with-dynamic-local-class',
+  'component-with-global-class-and-dynamic-local-class',
+  'component-with-explicit-styles-reference',
+  'component-with-global-class-composition',
+  'component-with-container-class',
+  'component-with-addon-value',
+  'component-with-addon-composition',
+  'sass-addon-component',
+  'less-addon-component'
+].map(name => [name, `/testing/render-component/${name}`]);
 
 var controllerRoutes = [
   'classic-route',
   'classic-template-only-route',
   'pod-route',
   'pod-template-only-route'
-].map(name => [name, `/${name}`]);
+].map(name => [name, `/testing/${name}`]);
 
 
 [...componentRoutes, ...controllerRoutes].forEach(([name, route]) => {
   test(name, function(assert) {
     visit(route);
 
-    andThen(function() {
-      let testElement = this.$('[data-test-element]').get(0);
+    andThen(() => {
+      let testElement = $('[data-test-element]').get(0);
       assert.ok(testElement);
 
       let styles = window.getComputedStyle(testElement);

@@ -6,8 +6,11 @@ module.exports = {
 
   options: {
     cssModules: {
-      generateScopedName: function(className, modulePath) {
-        return '_addon' + generateScopedName(className, modulePath);
+      virtualModules: {
+        'virtual-addon-constants': {
+          'superbold': 800,
+          'important-background': 'rgb(255, 255, 0)'
+        }
       }
     }
   },
