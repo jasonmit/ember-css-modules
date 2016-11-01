@@ -2,16 +2,19 @@ import Ember from 'ember';
 import config from './config/environment';
 
 const Router = Ember.Router.extend({
-  location: config.locationType
+  location: config.locationType,
+  rootURL: config.rootURL
 });
 
 Router.map(function() {
-  this.route('classic-route');
-  this.route('classic-template-only-route');
-  this.route('pod-route');
-  this.route('pod-template-only-route');
+  this.route('testing', function() {
+    this.route('classic-route');
+    this.route('classic-template-only-route');
+    this.route('pod-route');
+    this.route('pod-template-only-route');
 
-  this.route('render-component', { path: 'render-component/*component' });
+    this.route('render-component', { path: 'render-component/*component' });
+  });
 });
 
 export default Router;

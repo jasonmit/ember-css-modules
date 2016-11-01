@@ -1,4 +1,4 @@
-/* jshint node: true */
+/* eslint-env node */
 'use strict';
 
 var debug = require('debug')('ember-css-modules:addon');
@@ -10,18 +10,26 @@ var OutputStylesPreprocessor = require('./lib/output-styles-preprocessor');
 module.exports = {
   name: 'ember-css-modules',
 
-  isDevelopingAddon: function() {
-    return true;
+  shouldIncludeChildAddon: function(addon) {
+    // Don't infinitely recurse – it's the dummy test app that depends on dummy-addon, not this addon itself
+    return addon.name.indexOf('dummy') === -1;
   },
 
-  shouldIncludeChildAddon: function(addon) {
-    // Don't infinitely recurse – it's the dummy test app that depends on dummy-addon, not this addon itself
-    return addon.name !== 'dummy-addon';
+  init: function() {
+    this._super.init && this._super.init.apply(this, arguments);
+    this.modulesPreprocessor = new ModulesPreprocessor({ owner: this });
+    this.outputStylesPreprocessor = new OutputStylesPreprocessor({ owner: this });
   },
 
   included: function(parent) {
     debug('included in %s', parent.name);
+    this.ownerName = parent.name;
     this.options = parent.options && parent.options.cssModules || {};
+
+    if (!this.options.includeFiles) {
+      this.options.includeFiles = ['**/*.css'];
+    }
+
     this._super.included.apply(this, arguments);
   },
 
@@ -29,28 +37,23 @@ module.exports = {
     // Skip if we're setting up this addon's own registry
     if (type !== 'parent') { return; }
 
-    var options = registry.app.options && registry.app.options.cssModules || {};
-
-    if (!options.includeFiles) {
-      options.includeFiles = ['**/*.css'];
-    }
-
-    this.modulesPreprocessor = new ModulesPreprocessor({
-      owner: this,
-      options: options
-    });
-
-    this.outputStylesPreprocessor = new OutputStylesPreprocessor({
-      owner: this,
-      options: options
-    });
-
     registry.add('js', this.modulesPreprocessor);
     registry.add('css', this.outputStylesPreprocessor);
     registry.add('htmlbars-ast-plugin', {
       name: 'ember-css-modules',
-      plugin: HtmlbarsPlugin
+      plugin: HtmlbarsPlugin,
+      baseDir: function() {
+        return __dirname;
+      }
     });
+  },
+
+  getOwnerName: function() {
+    return this.ownerName;
+  },
+
+  getProject: function() {
+    return this.project;
   },
 
   getScopedNameGenerator: function() {
@@ -65,8 +68,24 @@ module.exports = {
     return this.modulesPreprocessor.getDependencies();
   },
 
+  getIntermediateOutputPath: function() {
+    return this.options.intermediateOutputPath;
+  },
+
   getPlugins: function() {
     return this.options.plugins || [];
+  },
+
+  getVirtualModules: function() {
+    return this.options.virtualModules;
+  },
+
+  getFileExtension: function() {
+    return this.options && this.options.extension || 'css';
+  },
+
+  getPostcssOptions: function() {
+    return this.options.postcssOptions;
   },
 
   belongsToAddon: function() {
